@@ -7,9 +7,9 @@ const port = process.env.PORT || 5000
 
 
 
-app.use(express())
+app.use(express.json())
 app.use(cors({
-    origin: ['http://localhost:5173/'],
+    origin: ['http://localhost:5173'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
@@ -34,11 +34,18 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
         const productCollection = client.db("smFood").collection('foodItems');
 
-        app.get('/food',async(req,res)=>{
+        app.get('/food', async (req, res) => {
             const result = await productCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.post('/food', async (req, res) => {
+            const body = req.body
+            // console.log(body);
+            const result = await productCollection.insertOne(body)
             res.send(result)
         })
 
