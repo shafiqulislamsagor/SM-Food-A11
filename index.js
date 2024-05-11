@@ -48,10 +48,21 @@ async function run() {
             const result = await productCollection.insertOne(body)
             res.send(result)
         })
+        app.get('/food-counts', async (req, res) => {
+            const foodCounts = await productCollection.countDocuments()
+            res.send({ foodCounts })
+        })
 
-        app.get('/foods/:email',async(req,res)=>{
+        app.get('/food-All', async (req, res) => {
+            const page = parseInt(req.query.page)
+            const size = parseInt(req.query.size)
+            console.log(page, size);
+            const result = await productCollection.find().skip((page - 1) * size).limit(size).toArray();
+            res.send(result);
+        });
+        app.get('/foods/:email', async (req, res) => {
             const email = req.params.email
-            const query = {"Donator.DonatorEmail": email}
+            const query = { "Donator.DonatorEmail": email }
             const result = await productCollection.find(query).toArray()
             res.send(result)
         })
