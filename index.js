@@ -68,6 +68,23 @@ async function run() {
             // console.log(result);
             res.send(result)
         })
+        app.put('/foods/:id', async (req, res) => {
+            const id = req.params.id
+            const body = req.body
+            console.log(body);
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    ExpiredDateTime: body.date,
+                    AdditionalNotes: body.notes,
+                    FoodQuantity: body.quantity,
+                },
+            }
+            const result = await productCollection.updateOne(query, updateDoc, options)
+            // console.log(result);
+            res.send(result)
+        })
 
         app.get('/food/:id', async (req, res) => {
             const id = req.params.id
