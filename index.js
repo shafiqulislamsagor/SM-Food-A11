@@ -85,6 +85,13 @@ async function run() {
             // console.log(result);
             res.send(result)
         })
+        app.delete('/food/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await productCollection.deleteOne(query)
+            // console.log(result);
+            res.send(result)
+        })
 
         app.get('/food/:id', async (req, res) => {
             const id = req.params.id
