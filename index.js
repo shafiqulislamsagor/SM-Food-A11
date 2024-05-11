@@ -49,15 +49,29 @@ async function run() {
             res.send(result)
         })
         app.get('/food-counts', async (req, res) => {
-            const foodCounts = await productCollection.countDocuments()
+            const search = req.query.search
+            let query = {
+                FoodName: { $regex: search, $options: 'i' },
+            }
+            const foodCounts = await productCollection.countDocuments(query)
             res.send({ foodCounts })
         })
 
         app.get('/food-All', async (req, res) => {
-            const page = parseInt(req.query.page)
-            const size = parseInt(req.query.size)
-            console.log(page, size);
-            const result = await productCollection.find().skip((page - 1) * size).limit(size).toArray();
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+            const filter = req.query.filter;
+            const search = req.query.search;
+            let query = {
+                FoodName: { $regex: search, $options: 'i' },
+            }
+            let options = {};
+
+            if (filter) {
+                options = { sort: { ExpiredDateTime: filter === 'less time' ? 1 : -1 } };
+            }
+
+            const result = await productCollection.find(query, options).skip((page - 1) * size).limit(size).toArray();
             res.send(result);
         });
         app.get('/foods/:email', async (req, res) => {
