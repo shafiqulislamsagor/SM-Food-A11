@@ -36,6 +36,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         const productCollection = client.db("smFood").collection('foodItems');
+        const productRequestCollection = client.db("smFood").collection('foodRequest');
 
         app.get('/food', async (req, res) => {
             const result = await productCollection.find().toArray()
@@ -86,6 +87,17 @@ async function run() {
             const email = req.params.email
             const query = { "Donator.DonatorEmail": email }
             const result = await productCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/food-request',async(req,res)=>{
+            const result = await productRequestCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.post('/food-request',async(req,res)=>{
+            const body = req.body
+            const result = await productRequestCollection.insertOne(body)
             res.send(result)
         })
 
