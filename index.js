@@ -39,7 +39,11 @@ async function run() {
         const productRequestCollection = client.db("smFood").collection('foodRequest');
 
         app.get('/food', async (req, res) => {
-            const result = await productCollection.find().toArray()
+            const query = {status: { $nin: ['Requested'] }, }
+            const result = await productCollection.find(query).toArray()
+
+
+
             res.send(result)
         })
 
@@ -47,6 +51,21 @@ async function run() {
             const body = req.body
             // console.log(body);
             const result = await productCollection.insertOne(body)
+            res.send(result)
+        })
+        app.put('/food/:id', async (req, res) => {
+            const id = req.params.id
+            const {status} = req.body
+            // console.log(status);
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: {
+                    status: status,
+                },
+            }
+            const result = await productCollection.updateOne(query, updateDoc, options)
+            // console.log(result);
             res.send(result)
         })
 
@@ -61,6 +80,7 @@ async function run() {
             const search = req.query.search
             let query = {
                 FoodName: { $regex: search, $options: 'i' },
+                status: { $nin: ['Requested'] }, 
             }
             const foodCounts = await productCollection.countDocuments(query)
             res.send({ foodCounts })
@@ -73,6 +93,7 @@ async function run() {
             const search = req.query.search;
             let query = {
                 FoodName: { $regex: search, $options: 'i' },
+                status: { $nin: ['Requested'] }, 
             }
             let options = {};
 
@@ -90,12 +111,12 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/food-request',async(req,res)=>{
+        app.get('/food-request', async (req, res) => {
             const result = await productRequestCollection.find().toArray()
             res.send(result)
         })
 
-        app.post('/food-request',async(req,res)=>{
+        app.post('/food-request', async (req, res) => {
             const body = req.body
             const result = await productRequestCollection.insertOne(body)
             res.send(result)
