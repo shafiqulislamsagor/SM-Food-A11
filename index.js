@@ -135,8 +135,18 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/food-request', async (req, res) => {
-            const result = await productRequestCollection.find().toArray()
+        app.get('/food-request/:email', async (req, res) => {
+            const email = req.params.email
+            const query = {"donar.donerEmail":email}
+            const result = await productRequestCollection.find(query).toArray()
+            res.send(result)
+        })
+        app.delete('/food-requested/:id', async (req, res) => {
+            const id = req.params.id
+            const query = {
+                "donar.foodId":id
+            }
+            const result = await productRequestCollection.deleteOne(query)
             res.send(result)
         })
 
