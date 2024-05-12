@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173','https://sm-food.web.app'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
