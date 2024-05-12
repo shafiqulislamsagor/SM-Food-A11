@@ -2,17 +2,22 @@ const express = require('express')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
 
 
 app.use(express.json())
+app.use(cookieParser())
 app.use(cors({
     origin: ['http://localhost:5173'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
+
+
 
 
 app.get('/', (req, res) => {
@@ -38,8 +43,31 @@ async function run() {
         const productCollection = client.db("smFood").collection('foodItems');
         const productRequestCollection = client.db("smFood").collection('foodRequest');
 
+        // cookies middlewares 
+        //creating Token
+        app.post("/jwt", async (req, res) => {
+            const body = req.body;
+            const token = jwt.sign(body, process.env.ACCESS_TOKEN);
+
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            }).send({ cookieCreate: true });
+        });
+
+        app.get('/logout', (req, res) => {
+            res.clearCookie('token', {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                    maxAge: 0,
+                })
+                .send({ LogOutCookie: true })
+        })
+
         app.get('/food', async (req, res) => {
-            const query = {status: { $nin: ['Requested'] }, }
+            const query = { status: { $nin: ['Requested'] }, }
             const result = await productCollection.find(query).toArray()
 
 
@@ -55,7 +83,7 @@ async function run() {
         })
         app.put('/food/:id', async (req, res) => {
             const id = req.params.id
-            const {status} = req.body
+            const { status } = req.body
             // console.log(status);
             const query = { _id: new ObjectId(id) }
             const options = { upsert: true }
@@ -104,7 +132,7 @@ async function run() {
             const search = req.query.search
             let query = {
                 FoodName: { $regex: search, $options: 'i' },
-                status: { $nin: ['Requested'] }, 
+                status: { $nin: ['Requested'] },
             }
             const foodCounts = await productCollection.countDocuments(query)
             res.send({ foodCounts })
@@ -117,7 +145,7 @@ async function run() {
             const search = req.query.search;
             let query = {
                 FoodName: { $regex: search, $options: 'i' },
-                status: { $nin: ['Requested'] }, 
+                status: { $nin: ['Requested'] },
             }
             let options = {};
 
@@ -137,14 +165,14 @@ async function run() {
 
         app.get('/food-request/:email', async (req, res) => {
             const email = req.params.email
-            const query = {"donar.donerEmail":email}
+            const query = { "donar.donerEmail": email }
             const result = await productRequestCollection.find(query).toArray()
             res.send(result)
         })
         app.delete('/food-requested/:id', async (req, res) => {
             const id = req.params.id
             const query = {
-                "donar.foodId":id
+                "donar.foodId": id
             }
             const result = await productRequestCollection.deleteOne(query)
             res.send(result)
