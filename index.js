@@ -18,6 +18,27 @@ app.use(cors({
 }))
 
 
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.token
+    if (token) {
+        jwt.verify(token, process.env.ACCESS_TOKEN, (error,success) => {
+            if (error) {
+                console.log(error)
+                return res.status(401).send({ message: 'unauthenticated' })
+            }
+            console.log(success)
+
+            req.user = success
+            next()
+        })
+    }
+    else{
+        res.status(401).send({ message: 'unauthenticated' })
+    }
+}
+
+
+
 
 
 app.get('/', (req, res) => {
@@ -58,11 +79,11 @@ async function run() {
 
         app.get('/logout', (req, res) => {
             res.clearCookie('token', {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-                    maxAge: 0,
-                })
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                maxAge: 0,
+            })
                 .send({ LogOutCookie: true })
         })
 
@@ -156,14 +177,16 @@ async function run() {
             const result = await productCollection.find(query, options).skip((page - 1) * size).limit(size).toArray();
             res.send(result);
         });
-        app.get('/foods/:email', async (req, res) => {
+        app.get('/foods/:email',verifyToken, async (req, res) => {
+            const token = req.user.email
             const email = req.params.email
+            if(token !== email) return res.status(403).send('Forbidden Access')
             const query = { "Donator.DonatorEmail": email }
             const result = await productCollection.find(query).toArray()
             res.send(result)
         })
 
-        app.get('/food-request/:email', async (req, res) => {
+        app.get('/food-request/:email',verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { "donar.donerEmail": email }
             const result = await productRequestCollection.find(query).toArray()
