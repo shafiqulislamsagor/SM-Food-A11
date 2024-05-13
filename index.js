@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: ['http://localhost:5173','https://sm-food.web.app'],
+    origin: ['http://localhost:5173', 'https://sm-food.web.app'],
     credentials: true,
     optionsSuccessStatus: 200
 }))
@@ -63,13 +63,15 @@ async function run() {
         //creating Token
         app.post("/jwt", async (req, res) => {
             const body = req.body;
-            const token = jwt.sign(body, process.env.ACCESS_TOKEN);
+            const token = jwt.sign(body, process.env.ACCESS_TOKEN, {
+                expiresIn: '365d',
+            });
 
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            }).send({success:true})
+            }).send({ success: true })
         });
 
         app.get('/logout', (req, res) => {
