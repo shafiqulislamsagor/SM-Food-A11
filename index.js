@@ -58,6 +58,7 @@ async function run() {
         // await client.connect();
         const productCollection = client.db("smFood").collection('foodItems');
         const productRequestCollection = client.db("smFood").collection('foodRequest');
+        const reviewCollection = client.db("smFood").collection('review');
 
         // cookies middlewares 
         //creating Token
@@ -82,6 +83,16 @@ async function run() {
                 maxAge: 0,
             })
                 .send({ LogOutCookie: true })
+        })
+
+        app.get('/review',async(req,res)=>{
+            const result = await reviewCollection.find().toArray()
+            res.send(result)
+        })
+        app.post('/review',async(req,res)=>{
+            const review = req.body
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
         })
 
         app.get('/food', async (req, res) => {
